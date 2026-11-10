@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>hwid-reset-tool — HWID Spoofer & Ban Bypass Tool for Windows</title>
+<meta name="description" content="hwid-reset-tool is a free, open-source HWID spoofer and ban bypass tool for Windows. Reset hardware identifiers, clear tracing, spoof disk/GPU/MAC serials and unban accounts after HWID bans.">
+<style>
+  :root{
+    --bg-0:#070a17;
+    --bg-1:#0b1027;
+    --bg-2:#111a3a;
+    --indigo:#6366f1;
+    --violet:#8b5cf6;
+    --cyan:#22d3ee;
+    --text:#e6e9f5;
+    --muted:#9aa3c0;
+    --line:rgba(255,255,255,.09);
+    --glass:rgba(17,24,48,.55);
+    --radius:16px;
+    --maxw:1120px;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0;}
+
+  html{scroll-behavior:smooth;}
+
+  body{
+    font-family:"Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+    color:var(--text);
+    background:
+      radial-gradient(900px 600px at 12% -8%, rgba(99,102,241,.28), transparent 60%),
+      radial-gradient(800px 520px at 92% 4%, rgba(34,211,238,.16), transparent 62%),
+      radial-gradient(1000px 700px at 50% 110%, rgba(139,92,246,.20), transparent 65%),
+      linear-gradient(160deg, var(--bg-0) 0%, var(--bg-1) 46%, var(--bg-2) 100%);
+    background-attachment:fixed;
+    min-height:100vh;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  a{color:inherit;text-decoration:none;}
+
+  .wrap{
+    width:100%;
+    max-width:var(--maxw);
+    margin:0 auto;
+    padding:0 24px;
+  }
+
+  /* ---------- NAV ---------- */
+  .nav{
+    position:sticky;
+    top:0;
+    z-index:100;
+    background:var(--glass);
+    backdrop-filter:blur(16px) saturate(140%);
+    -webkit-backdrop-filter:blur(16px) saturate(140%);
+    border-bottom:1px solid var(--line);
+  }
+  .nav-inner{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:20px;
+    height:68px;
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-weight:700;
+    font-size:1.02rem;
+    letter-spacing:.2px;
+    white-space:nowrap;
+  }
+  .brand-mark{
+    width:30px;height:30px;
+    border-radius:9px;
+    display:grid;place-items:center;
+    font-size:.9rem;
+    background:linear-gradient(135deg,var(--indigo),var(--violet));
+    box-shadow:0 0 18px rgba(99,102,241,.55);
+  }
+  .brand span{background:linear-gradient(90deg,#c7d2fe,#a5b4fc 45%,#67e8f9);-webkit-background-clip:text;background-clip:text;color:transparent;}
+
+  .nav-links{
+    display:flex;
+    align-items:center;
+    gap:30px;
+    font-size:.93rem;
+    color:var(--muted);
+  }
+  .nav-links a{transition:color .18s ease;}
+  .nav-links a:hover{color:#fff;}
+
+  .btn{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:9px;
+    font-weight:600;
+    font-size:.95rem;
+    border-radius:12px;
+    padding:13px 24px;
+    border:1px solid transparent;
+    cursor:pointer;
+    transition:transform .18s ease, box-shadow .22s ease, background .22s ease, border-color .22s ease;
+    white-space:nowrap;
+  }
+  .btn-primary{
+    color:#fff;
+    background:linear-gradient(135deg,var(--indigo) 0%, var(--violet) 55%, #6d28d9 100%);
+    box-shadow:0 10px 30px -8px rgba(99,102,241,.75), inset 0 1px 0 rgba(255,255,255,.22);
+  }
+  .btn-primary:hover{
+    transform:translateY(-2px);
+    box-shadow:0 16px 40px -8px rgba(139,92,246,.85), inset 0 1px 0 rgba(255,255,255,.28);
+  }
+  .btn-ghost{
+    color:var(--text);
+    background:rgba(255,255,255,.04);
+    border-color:rgba(255,255,255,.16);
+  }
+  .btn-ghost:hover{
+    transform:translateY(-2px);
+    background:rgba(255,255,255,.09);
+    border-color:rgba(255,255,255,.3);
+  }
+  .btn-sm{padding:10px 18px;font-size:.88rem;border-radius:10px;}
+
+  /* ---------- HERO ---------- */
+  .hero{
+    position:relative;
+    text-align:center;
+    padding:96px 0 84px;
+    overflow:hidden;
+  }
+  .hero::before{
+    content:"";
+    position:absolute;
+    inset:auto 0 -40% 0;
+    height:520px;
+    background:radial-gradient(closest-side, rgba(99,102,241,.22), transparent 72%);
+    pointer-events:none;
+  }
+  .pill{
+    display:inline-flex;
+    align-items:center;
+    gap:9px;
+    font-size:.79rem;
+    font-weight:600;
+    letter-spacing:.09em;
+    text-transform:uppercase;
+    color:#c7d2fe;
+    padding:8px 16px;
+    border-radius:999px;
+    border:1px solid rgba(129,140,248,.4);
+    background:rgba(99,102,241,.12);
+    box-shadow:0 0 24px -6px rgba(99,102,241,.5) inset;
+  }
+  .pill-dot{
+    width:7px;height:7px;border-radius:50%;
+    background:var(--cyan);
+    box-shadow:0 0 10px var(--cyan);
+    animation:pulse 2.2s ease-in-out infinite;
+  }
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.45;transform:scale(.82);}}
+
+  h1{
+    margin:26px auto 0;
+    max-width:900px;
+    font-size:clamp(2.1rem, 5.6vw, 4rem);
+    line-height:1.1;
+    letter-spacing:-.022em;
+    font-weight:800;
+    background:linear-gradient(100deg,#ffffff 0%, #c7d2fe 34%, #a78bfa 62%, #67e8f9 100%);
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+  .hero p.lede{
+    margin:24px auto 0;
+    max-width:660px;
+    color:var(--muted);
+    font-size:clamp(.98rem, 1.6vw, 1.12rem);
+  }
+  .hero-actions{
+    margin-top:38px;
+    display:flex;
+    justify-content:center;
+    gap:14px;
+    flex-wrap:wrap;
+  }
+  .hero-actions .btn{padding:15px 30px;font-size:1rem;}
+
+  .stats{
+    margin:56px auto 0;
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:14px;
+    max-width:880px;
+  }
+  .chip{
+    padding:20px 14px;
+    border-radius:14px;
+    background:rgba(255,255,255,.035);
+    border:1px solid var(--line);
+    backdrop-filter:blur(8px);
+    transition:transform .2s ease, border-color .2s ease, background .2s ease;
+  }
+  .chip:hover{
+    transform:translateY(-3px);
+    border-color:rgba(129,140,248,.45);
+    background:rgba(99,102,241,.09);
+  }
+  .chip b{
+    display:block;
+    font-size:1.22rem;
+    font-weight:700;
+    letter-spacing:-.01em;
+    background:linear-gradient(90deg,#e0e7ff,#a5b4fc);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .chip small{
+    display:block;
+    margin-top:4px;
+    font-size:.76rem;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:#8b94b5;
+  }
+
+  /* ---------- SECTIONS ---------- */
+  section{padding:82px 0;}
+  .sec-head{text-align:center;max-width:640px;margin:0 auto 52px;}
+  .sec-kicker{
+    font-size:.76rem;
+    font-weight:700;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color:#818cf8;
+  }
+  .sec-head h2{
+    margin-top:12px;
+    font-size:clamp(1.6rem, 3.4vw, 2.3rem);
+    letter-spacing:-.02em;
+    line-height:1.18;
+  }
+  .sec-head p{
+    margin-top:14px;
+    color:var(--muted);
+    font-size:.98rem;
+  }
+
+  /* ---------- FEATURES ---------- */
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:20px;
+  }
+  .card{
+    position:relative;
+    padding:28px 24px 26px;
+    border-radius:var(--radius);
+    background:linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.018));
+    border:1px solid var(--line);
+    overflow:hidden;
+    transition:transform .22s ease, box-shadow .28s ease, border-color .22s ease;
+  }
+  .card::before{
+    content:"";
+    position:absolute;
+    top:0;left:0;right:0;
+    height:3px;
+    background:linear-gradient(90deg,var(--indigo),var(--violet),var(--cyan));
+    opacity:.85;
+  }
+  .card:hover{
+    transform:translateY(-7px);
+    border-color:rgba(129,140,248,.42);
+    box-shadow:0 22px 48px -20px rgba(79,70,229,.7);
+  }
+  .card .ico{
+    width:46px;height:46px;
+    display:grid;place-items:center;
+    font-size:1.32rem;
+    border-radius:13px;
+    background:rgba(99,102,241,.15);
+    border:1px solid rgba(129,140,248,.28);
+    margin-bottom:18px;
+  }
+  .card h3{
+    font-size:1.03rem;
+    font-weight:700;
+    letter-spacing:-.01em;
+    margin-bottom:9px;
+  }
+  .card p{
+    font-size:.9rem;
+    color:var(--muted);
+  }
+
+  /* ---------- HOW IT WORKS ---------- */
+  .steps{
+    position:relative;
+    max-width:720px;
+    margin:0 auto;
+    padding-left:8px;
+  }
+  .steps::before{
+    content:"";
+    position:absolute;
+    left:27px;
+    top:16px;
+    bottom:16px;
+    width:2px;
+    border-radius:2px;
+    background:linear-gradient(180deg,rgba(99,102,241,.95),rgba(139,92,246,.7),rgba(34,211,238,.35));
+    box-shadow:0 0 18px rgba(99,102,241,.55);
+  }
+  .step{
+    position:relative;
+    display:flex;
+    gap:22px;
+    padding:0 0 38px 0;
+  }
+  .step:last-child{padding-bottom:0;}
+  .step-num{
+    flex:0 0 56px;
+    width:56px;height:56px;
+    border-radius:50%;
+    display:grid;place-items:center;
+    font-weight:800;
+    font-size:1.05rem;
+    color:#fff;
+    background:linear-gradient(135deg,#1e1b4b,#312e81);
+    border:1px solid rgba(129,140,248,.55);
+    box-shadow:0 0 0 6px rgba(11,16,39,.9), 0 0 26px -4px rgba(99,102,241,.8);
+    z-index:1;
+  }
+  .step-body{
+    padding:6px 0 0;
+  }
+  .step-body h3{
+    font-size:1.05rem;
+    font-weight:700;
+    margin-bottom:7px;
+  }
+  .step-body p{
+    color:var(--muted);
+    font-size:.92rem;
+    max-width:520px;
+  }
+
+  /* ---------- FAQ ---------- */
+  .faq{
+    max-width:780px;
+    margin:0 auto;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+  details{
+    border:1px solid var(--line);
+    border-radius:14px;
+    background:rgba(255,255,255,.032);
+    overflow:hidden;
+    transition:border-color .2s ease, background .2s ease;
+  }
+  details[open]{
+    border-color:rgba(129,140,248,.42);
+    background:rgba(99,102,241,.075);
+  }
+  summary{
+    list-style:none;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:18px;
+    padding:19px 22px;
+    font-weight:600;
+    font-size:.97rem;
+    user-select:none;
+  }
+  summary::-webkit-details-marker{display:none;}
+  summary::marker{content:"";}
+  .plus{
+    flex:0 0 auto;
+    position:relative;
+    width:22px;height:22px;
+    border-radius:50%;
+    border:1px solid rgba(129,140,248,.5);
+    background:rgba(99,102,241,.16);
+    transition:transform .25s ease, background .25s ease, border-color .25s ease;
+  }
+  .plus::before,.plus::after{
+    content:"";
+    position:absolute;
+    top:50%;left:50%;
+    background:#c7d2fe;
+    border-radius:2px;
+    transform:translate(-50%,-50%);
+  }
+  .plus::before{width:10px;height:2px;}
+  .plus::after{width:2px;height:10px;transition:opacity .2s ease;}
+  details[open] .plus{
+    transform:rotate(135deg);
+    background:rgba(139,92,246,.3);
+    border-color:rgba(167,139,250,.75);
+  }
+  details[open] .plus::after{opacity:0;}
+  .faq-a{
+    padding:0 22px 21px;
+    color:var(--muted);
+    font-size:.91rem;
+    max-width:660px;
+  }
+
+  /* ---------- CTA BANNER ---------- */
+  .cta-section{padding:24px 0 96px;}
+  .cta{
+    position:relative;
+    text-align:center;
+    padding:70px 32px;
+    border-radius:26px;
+    border:1px solid rgba(129,140,248,.32);
+    background:linear-gradient(150deg, rgba(30,27,75,.92), rgba(15,23,42,.94) 55%, rgba(12,17,38,.96));
+    overflow:hidden;
+    box-shadow:0 40px 90px -50px rgba(99,102,241,.9);
+  }
+  .cta::before{
+    content:"";
+    position:absolute;
+    top:-55%;left:50%;
+    width:760px;height:760px;
+    transform:translateX(-50%);
+    background:radial-gradient(closest-side, rgba(99,102,241,.42), rgba(139,92,246,.16) 55%, transparent 74%);
+    pointer-events:none;
+  }
+  .cta>*{position:relative;}
+  .cta h2{
+    font-size:clamp(1.55rem, 3.6vw, 2.4rem);
+    letter-spacing:-.02em;
+    line-height:1.16;
+    max-width:640px;
+    margin:0 auto;
+  }
+  .cta p{
+    margin:16px auto 0;
+    max-width:540px;
+    color:var(--muted);
+    font-size:.98rem;
+  }
+  .cta .hero-actions{margin-top:32px;}
+
+  /* ---------- FOOTER ---------- */
+  footer{
+    border-top:1px solid var(--line);
+    background:rgba(7,10,23,.6);
+    backdrop-filter:blur(10px);
+  }
+  .foot-inner{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:18px;
+    flex-wrap:wrap;
+    padding:30px 0;
+    font-size:.86rem;
+    color:#8089a9;
+  }
+  .foot-inner a{
+    color:#a5b4fc;
+    transition:color .18s ease;
+  }
+  .foot-inner a:hover{color:#fff;}
+  .foot-links{display:flex;align-items:center;gap:22px;flex-wrap:wrap;}
+
+  /* ---------- RESPONSIVE ---------- */
+  @media (max-width:900px){
+    .grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+    .stats{grid-template-columns:repeat(2,minmax(0,1fr));}
+  }
+
+  @media (max-width:640px){
+    .wrap{padding:0 18px;}
+    .nav-inner{height:62px;}
+    .nav-links{display:none;}
+    .brand{font-size:.95rem;}
+    .brand-mark{width:27px;height:27px;font-size:.8rem;}
+    .hero{padding:64px 0 60px;}
+    .hero-actions{flex-direction:column;align-items:stretch;}
+    .hero-actions .btn{width:100%;}
+    .stats{grid-template-columns:1fr;gap:10px;margin-top:42px;}
+    .grid{grid-template-columns:1fr;}
+    section{padding:60px 0;}
+    .sec-head{margin-bottom:36px;}
+    .steps::before{left:23px;}
+    .step{gap:16px;padding-bottom:30px;}
+    .step-num{flex:0 0 48px;width:48px;height:48px;font-size:.95rem;}
+    .cta{padding:48px 20px;border-radius:20px;}
+    .cta-section{padding:12px 0 68px;}
+    .foot-inner{flex-direction:column;align-items:flex-start;gap:12px;}
+  }
+</style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#top">
+        <span class="brand-mark">⚙</span>
+        <span>hwid-reset-tool</span>
+      </a>
+      <nav class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#how">How it works</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+      <a class="btn btn-primary btn-sm" href="https://gitscore.cc" rel="noopener">Download</a>
+    </div>
+  </header>
+
+  <main id="top">
+
+    <!-- HERO -->
+    <section class="hero">
+      <div class="wrap">
+        <span class="pill"><span class="pill-dot"></span>Ban Bypass Tool</span>
+        <h1>Reset your HWID.<br>Bypass the ban. Play again.</h1>
+        <p class="lede">
+          hwid-reset-tool is a free, open-source HWID spoofer for Windows. It resets hardware
+          identifiers, clears tracing artifacts and spoofs disk, GPU and MAC serials — so
+          accounts locked by HWID bans can get back in.
+        </p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="https://gitscore.cc" rel="noopener">⬇ Download for Windows</a>
+          <a class="btn btn-ghost" href="https://gitscore.cc" rel="noopener">★ View on GitHub</a>
+        </div>
+
+        <div class="stats">
+          <div class="chip"><b>120K+</b><small>Downloads</small></div>
+          <div class="chip"><b>v3.4.1</b><small>Latest version</small></div>
+          <div class="chip"><b>Windows 10 / 11</b><small>Supported OS</small></div>
+          <div class="chip"><b>Free &amp; open source</b><small>MIT licensed</small></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FEATURES -->
+    <section id="features">
+      <div class="wrap">
+        <div class="sec-head">
+          <div class="sec-kicker">Features</div>
+          <h2>Everything needed to wipe a hardware ban</h2>
+          <p>One lightweight tool that covers identifiers, serials and residual tracing in a single pass.</p>
+        </div>
+
+        <div class="grid">
+          <article class="card">
+            <div class="ico">🖥️</div>
+            <h3>Full HWID reset</h3>
+            <p>Regenerates machine GUIDs, SMBIOS tables and volume IDs so the system presents a completely fresh hardware fingerprint.</p>
+          </article>
+          <article class="card">
+            <div class="ico">💽</div>
+            <h3>Disk serial spoofing</h3>
+            <p>Replaces physical drive serials and volume identifiers on HDDs and NVMe SSDs, hiding the signatures anti-cheats log.</p>
+          </article>
+          <article class="card">
+            <div class="ico">🎮</div>
+            <h3>GPU &amp; MAC spoofing</h3>
+            <p>Clones adapter descriptors and randomizes network adapter MAC addresses to break device-level correlation between sessions.</p>
+          </article>
+          <article class="card">
+            <div class="ico">🧹</div>
+            <h3>Trace cleanup</h3>
+            <p>Purges registry leftovers, cached device records and anti-cheat trace files that re-link a banned account to the same machine.</p>
+          </article>
+          <article class="card">
+            <div class="ico">🛡️</div>
+            <h3>Safe restore points</h3>
+            <p>Creates an automatic system restore point before every run, so all identifier changes can be reverted with one click.</p>
+          </article>
+          <article class="card">
+            <div class="ico">⚡</div>
+            <h3>Portable &amp; fast</h3>
+            <p>A single executable with no installer, no background services and no telemetry. The full reset completes in under a minute.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section id="how">
+      <div class="wrap">
+        <div class="sec-head">
+          <div class="sec-kicker">How it works</div>
+          <h2>Three steps from banned to back online</h2>
+          <p>No configuration files, no command line flags — just run it and reboot.</p>
+        </div>
+
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-body">
+              <h3>Download and run as administrator</h3>
+              <p>Grab the latest build from gitscore.cc, extract the portable executable and launch it with elevated privileges so it can access hardware identifiers.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-body">
+              <h3>Spoof identifiers and clear traces</h3>
+              <p>Select the targets you need — disk, GPU, MAC and SMBIOS — then let the tool generate new serials and wipe leftover anti-cheat tracing records.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-body">
+              <h3>Reboot and sign in</h3>
+              <p>Restart Windows so the new hardware profile takes effect, then log into your account or create a fresh one on the reset machine.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section id="faq">
+      <div class="wrap">
+        <div class="sec-head">
+          <div class="sec-kicker">FAQ</div>
+          <h
